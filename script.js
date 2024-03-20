@@ -1,3 +1,43 @@
+const activarBoton = document.getElementById('activar');
+const desactivarBoton = document.getElementById('desactivar');
+const fullscreenBoton = document.getElementById('fullscreen');
+let wakeLock = null;
+
+// Función para activar el bloqueo de pantalla
+async function activarBloqueoPantalla() {
+    try {
+        wakeLock = await navigator.wakeLock.request('screen');
+        console.log('Bloqueo de pantalla activado.');
+    } catch (err) {
+        console.error('Error al activar el bloqueo de pantalla:', err);
+    }
+}
+
+// Función para desactivar el bloqueo de pantalla
+function desactivarBloqueoPantalla() {
+    if (wakeLock !== null) {
+        wakeLock.release();
+        wakeLock = null;
+        console.log('Bloqueo de pantalla desactivado.');
+    }
+}
+
+// Función para entrar o salir de pantalla completa
+function toggleFullscreen() {
+    if (document.fullscreenElement) {
+        document.exitFullscreen();
+        console.log('Saliendo de pantalla completa.');
+    } else {
+        document.documentElement.requestFullscreen();
+        console.log('Entrando en pantalla completa.');
+    }
+}
+
+// Manejadores de eventos para los botones
+//activarBoton.addEventListener('click', activarBloqueoPantalla);
+//desactivarBoton.addEventListener('click', desactivarBloqueoPantalla);
+fullscreenBoton.addEventListener('click', toggleFullscreen);
+
 document.addEventListener("DOMContentLoaded", function() {
   const devicesSelect = document.getElementById("devices");
   const decrementButton = document.getElementById("decrement");
@@ -124,3 +164,4 @@ document.addEventListener("DOMContentLoaded", function() {
     }
   }
 });
+

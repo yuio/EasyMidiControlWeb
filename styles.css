@@ -3,7 +3,7 @@ body {
   text-align: center;
 }
 
-button {
+.bigbutton{
   cursor: pointer;
   width:300px;
   height:300px;

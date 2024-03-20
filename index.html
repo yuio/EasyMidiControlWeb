@@ -7,14 +7,40 @@
   <link rel="stylesheet" href="styles.css">
 </head>
 <body>
-  <h1>Controlador MIDI</h1>
-      <label for="devices">Dispositivo MIDI:</label>
-    <select id="devices"></select><br><br>
-    <label for="program">Programa MIDI:</label>
-    <input type="number" id="program" min="0" max="255" value="0"><br><br>
-    <button id="send">Enviar</button>
-    <button id="decrement">-</button>
-    <button id="increment">+</button>
+
+  <div>
+    <table>
+      <tr>
+        <td><h1>Controlador MIDI</h1></td>
+        <td><label for="devices">MIDI Device:</label><select id="devices"></select></td>
+        <td><label for="program">Program:</label><input type="number" id="program" min="0" max="255" value="0"/></td>
+        <td><button id="send">Send</button></td>
+        <td><button id="fullscreen">Fullscreen</button></td>
+        <td><button id="settings">Settings</button></td>
+      </tr>        
+    </table>
+  </div>
+
+  <hr>
+
+  <div>
+    <table>
+      <tr>
+        <td><h2>Settings</h2></td>
+        <td><label for="setup_for">Setup for: </label><select id="setup_for"><option value="setup_for_custom">Custom</option><option value="setup_for_gt1000">gt-1000</option><option value="setup_for_tonex">Tonex</option><option value="setup_for_zoom g1n">Zoon g1n/g1xn</option><option value="setup_for_helix">Helix</option></select></select></td></td>
+        <td><label for="scr_on"   >Screen On  </label><input  id="scr_on"   type="checkbox"/></select></td>
+        <td><label for="inc_buts" >Buttons +/-</label><input  id="inc_buts" type="checkbox"/></td>        
+        <td><label for="cols_num" >Cols:      </label><input  id="cols_num" type="number" min="0" max="255" value="0"/></td>
+        <td><label for="rows_num" >Rows:      </label><input  id="rows_num" type="number" min="0" max="255" value="0"/></td>
+        <td><label for="col_name" >Cols Name: </label><select id="col_name"><option value="col_num_name">Number</option><option value="col_char_name">Character</option></select></td>
+        <td><label for="row_name" >Row Name:  </label><select id="row_name"><option value="row_num_name">Number</option><option value="row_char_name">Character</option></select></td>
+      </tr>        
+    </table>
+    <hr>
+  </div>
+
+  <button id="decrement" class="bigbutton">-</button>
+  <button id="increment" class="bigbutton">+</button>    
   <script src="script.js"></script>
 </body>
 </html>
