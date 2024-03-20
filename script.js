@@ -1,6 +1,46 @@
-const activarBoton = document.getElementById('activar');
-const desactivarBoton = document.getElementById('desactivar');
-const fullscreenBoton = document.getElementById('fullscreen');
+// Acciones al hacer clic en una celda de cualquier tabla
+document.addEventListener('DOMContentLoaded', function() {
+  const tables = document.querySelectorAll('table');
+
+  tables.forEach(function(table) {
+    table.addEventListener('click', function(event) {
+      const target = event.target;
+      const tagName = target.tagName;
+
+      if (tagName === 'TD') {
+        const input = target.querySelector('input, select');
+        if (input) {
+          if (input.tagName === 'SELECT') {
+            input.focus();
+          } else if (input.tagName === 'INPUT') {
+            if (input.type === 'checkbox') {
+              input.checked = !input.checked;
+            } else if (input.type === 'button' || input.type === 'submit') {
+              input.click();
+            } else {
+              input.focus();
+            }
+          }
+        }
+      }
+    });
+  });
+});
+
+
+document.addEventListener("DOMContentLoaded", function() {
+  const settingsButton = document.getElementById("settings");
+  const settingsSection = document.getElementById("settings_section");
+
+  settingsButton.addEventListener("click", function() {
+      if (settingsSection.style.display === "none" || settingsSection.style.display === "") {
+          settingsSection.style.display = "block";
+      } else {
+          settingsSection.style.display = "none";
+      }
+  });
+});
+
 let wakeLock = null;
 
 // Función para activar el bloqueo de pantalla
@@ -33,17 +73,19 @@ function toggleFullscreen() {
     }
 }
 
-// Manejadores de eventos para los botones
-//activarBoton.addEventListener('click', activarBloqueoPantalla);
-//desactivarBoton.addEventListener('click', desactivarBloqueoPantalla);
-fullscreenBoton.addEventListener('click', toggleFullscreen);
-
 document.addEventListener("DOMContentLoaded", function() {
   const devicesSelect = document.getElementById("devices");
   const decrementButton = document.getElementById("decrement");
   const incrementButton = document.getElementById("increment");
   const programInput = document.getElementById("program");
   const sendButton = document.getElementById("send");
+
+  //const activarBoton = document.getElementById('activar');
+  //const desactivarBoton = document.getElementById('desactivar');
+  const fullscreenBoton = document.getElementById('fullscreen');
+  //activarBoton.addEventListener('click', activarBloqueoPantalla);
+  //desactivarBoton.addEventListener('click', desactivarBloqueoPantalla);
+  fullscreenBoton.addEventListener('click', toggleFullscreen);
 
   let midiAccess;
   let selected_output;

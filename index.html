@@ -5,15 +5,16 @@
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
   <title>Controlador MIDI</title>
   <link rel="stylesheet" href="styles.css">
+  <script src="script.js"></script>
 </head>
 <body>
 
-  <div>
-    <table>
+  <div id="header_section">
+    <div class="section_title">MIDI Controller</div>
+    <table id="header_table">
       <tr>
-        <td><h1>Controlador MIDI</h1></td>
-        <td><label for="devices">MIDI Device:</label><select id="devices"></select></td>
-        <td><label for="program">Program:</label><input type="number" id="program" min="0" max="255" value="0"/></td>
+        <td><label for="devices">MIDI Device:</label><br><select id="devices"></select></td>
+        <td><label for="program">Program:</label><br><input type="number" id="program" min="0" max="255" value="0"></td>
         <td><button id="send">Send</button></td>
         <td><button id="fullscreen">Fullscreen</button></td>
         <td><button id="settings">Settings</button></td>
@@ -21,26 +22,28 @@
     </table>
   </div>
 
-  <hr>
-
-  <div>
-    <table>
+  <div id="settings_section" style="display:none;">
+    <span class="section_title">Settings</span>
+    <table id="settings_table">
       <tr>
-        <td><h2>Settings</h2></td>
-        <td><label for="setup_for">Setup for: </label><select id="setup_for"><option value="setup_for_custom">Custom</option><option value="setup_for_gt1000">gt-1000</option><option value="setup_for_tonex">Tonex</option><option value="setup_for_zoom g1n">Zoon g1n/g1xn</option><option value="setup_for_helix">Helix</option></select></select></td></td>
-        <td><label for="scr_on"   >Screen On  </label><input  id="scr_on"   type="checkbox"/></select></td>
-        <td><label for="inc_buts" >Buttons +/-</label><input  id="inc_buts" type="checkbox"/></td>        
-        <td><label for="cols_num" >Cols:      </label><input  id="cols_num" type="number" min="0" max="255" value="0"/></td>
-        <td><label for="rows_num" >Rows:      </label><input  id="rows_num" type="number" min="0" max="255" value="0"/></td>
-        <td><label for="col_name" >Cols Name: </label><select id="col_name"><option value="col_num_name">Number</option><option value="col_char_name">Character</option></select></td>
-        <td><label for="row_name" >Row Name:  </label><select id="row_name"><option value="row_num_name">Number</option><option value="row_char_name">Character</option></select></td>
+        <td><label for="setup_for">Setup for: </label><br><select id="setup_for"><option value="setup_for_custom">Custom</option><option value="setup_for_gt1000">GT-1000</option><option value="setup_for_tonex">Tonex</option><option value="setup_for_zoom g1n">Zoon g1n/g1xn</option><option value="setup_for_helix">Helix</option></select></select></td></td>
+        <td><label for="scr_on"   >Display On </label><br><input  id="scr_on"   type="checkbox"/></select></td>
+        <td><label for="inc_buts" >Buttons +/-</label><br><input  id="inc_buts" type="checkbox"/></td>        
+        <td><label for="cols_num" >Cols:      </label><br><input  id="cols_num" type="number" min="0" max="255" value="0"/></td>
+        <td><label for="rows_num" >Rows:      </label><br><input  id="rows_num" type="number" min="0" max="255" value="0"/></td>
+        <td><label for="col_name" >Cols Name: </label><br><select id="col_name"><option value="col_num_name">Number</option><option value="col_char_name">Character</option></select></td>
+        <td><label for="row_name" >Row Name:  </label><br><select id="row_name"><option value="row_num_name">Number</option><option value="row_char_name">Character</option></select></td>
       </tr>        
     </table>
-    <hr>
   </div>
 
-  <button id="decrement" class="bigbutton">-</button>
-  <button id="increment" class="bigbutton">+</button>    
-  <script src="script.js"></script>
+  <div id="buttons_inc_dec_section" style="display:block;">
+    <button id="decrement">-</button>
+    <button id="increment">+</button>    
+  </div>
+
+  <div id="buttons_grid_section" style="display:block;">
+  </div>
+  
 </body>
 </html>
