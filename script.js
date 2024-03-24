@@ -69,9 +69,9 @@ function execute_incommingState ( forced, record_state_cookie )
   {
     switch (incommingState["setup"]) 
     {
-      case "setup_for_gt1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]=64 ; incommingState["colName"]="col_name_number"   ; incommingState["rowName"]="row_name_number"; break;
-      case "setup_for_sy1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]=64 ; incommingState["colName"]="col_name_number"   ; incommingState["rowName"]="row_name_number"; break;
-      case "setup_for_tonex"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 3; incommingState["rowsNum"]=100; incommingState["colName"]="col_name_character"; incommingState["rowName"]="row_name_number"; break;
+      case "setup_for_gt1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 64; incommingState["colName"]="col_name_number"   ; incommingState["rowName"]="row_name_number"; break;
+      case "setup_for_sy1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 64; incommingState["colName"]="col_name_number"   ; incommingState["rowName"]="row_name_number"; break;
+      case "setup_for_tonex"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 3; incommingState["rowsNum"]= 50; incommingState["colName"]="col_name_character"; incommingState["rowName"]="row_name_number"; break;
       case "setup_for_helix"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 32; incommingState["colName"]="col_name_character"; incommingState["rowName"]="row_name_number"; break;
     }    
 
@@ -128,9 +128,9 @@ function execute_incommingState ( forced, record_state_cookie )
         b.style.width=eachButtonWidth;
         b.addEventListener('click' , clickevent(num) );
         
-        buttonName =(row_number?y.toString():String.fromCharCode(65 + y));
+        buttonName =((row_number+1)?y.toString():String.fromCharCode(65 + y));
         buttonName+="-"
-        buttonName+=(col_number?x.toString():String.fromCharCode(65 + x));
+        buttonName+=((col_number+1)?x.toString():String.fromCharCode(65 + x));
         
         b.innerHTML="<span class='button_big_name'>"+buttonName+"</span><br><span>("+num+")</span>";
         
