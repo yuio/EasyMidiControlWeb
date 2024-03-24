@@ -69,10 +69,10 @@ function execute_incommingState ( forced, record_state_cookie )
   {
     switch (incommingState["setup"]) 
     {
-      case "setup_for_gt1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 64; incommingState["colName"]="col_name_number"   ; incommingState["rowName"]="row_name_number"; break;
-      case "setup_for_sy1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 64; incommingState["colName"]="col_name_number"   ; incommingState["rowName"]="row_name_number"; break;
-      case "setup_for_tonex"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 3; incommingState["rowsNum"]= 50; incommingState["colName"]="col_name_character"; incommingState["rowName"]="row_name_number"; break;
-      case "setup_for_helix"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 32; incommingState["colName"]="col_name_character"; incommingState["rowName"]="row_name_number"; break;
+      case "setup_for_gt1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 64; incommingState["colName"]="col_name_number_plus1"; incommingState["rowName"]="row_name_number_plus1"; break;
+      case "setup_for_sy1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 64; incommingState["colName"]="col_name_number_plus1"; incommingState["rowName"]="row_name_number_plus1"; break;
+      case "setup_for_tonex"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 3; incommingState["rowsNum"]= 50; incommingState["colName"]="col_name_character"   ; incommingState["rowName"]="row_name_number"      ; break;
+      case "setup_for_helix"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 32; incommingState["colName"]="col_name_character"   ; incommingState["rowName"]="row_name_number_plus1"; break;
     }    
 
     setupSelect.value="none";
@@ -108,8 +108,12 @@ function execute_incommingState ( forced, record_state_cookie )
   if ( forced || (incommingState["rowName"] != currentState["rowName"] ) ) { if (rowNameSelect.value!=incommingState["rowName"]) rowNameSelect.value=incommingState["rowName"] ; update_grid=true; }
   if ( update_grid )
   {
-    let col_number = (incommingState["colName"]=="col_name_number");
-    let row_number = (incommingState["rowName"]=="row_name_number");
+    let col_number = (incommingState["colName"]!="col_name_character");
+    let row_number = (incommingState["rowName"]!="row_name_character");
+
+    let col_number_base = (incommingState["colName"]=="col_name_number_plus1"?1:0);
+    let row_number_base = (incommingState["rowName"]=="row_name_number_plus1"?1:0);
+
     let eachButtonWidth= ""+Math.floor(90/incommingState["colsNum"])+"%";
     function clickevent(n) { return function(event) { incommingState["program"]=n; execute_incommingState(false, true); } }
 
@@ -128,9 +132,9 @@ function execute_incommingState ( forced, record_state_cookie )
         b.style.width=eachButtonWidth;
         b.addEventListener('click' , clickevent(num) );
         
-        buttonName =((row_number+1)?y.toString():String.fromCharCode(65 + y));
+        buttonName =(row_number?(y+row_number_base).toString():String.fromCharCode(65 + y));
         buttonName+="-"
-        buttonName+=((col_number+1)?x.toString():String.fromCharCode(65 + x));
+        buttonName+=(col_number?(x+col_number_base).toString():String.fromCharCode(65 + x));
         
         b.innerHTML="<span class='button_big_name'>"+buttonName+"</span><br><span>("+num+")</span>";
         
