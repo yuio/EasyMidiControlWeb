@@ -8,6 +8,8 @@
   <script src="script.js"></script>
 </head>
 <body>
+  <audio id="clickSound" src="beat.wav"   preload="auto"></audio>
+  <audio id="clackSound" src="accent.wav" preload="auto"></audio>
 
   <div id="header_section">
     <div class="section_title">MIDICtrl</div>
@@ -19,6 +21,7 @@
         <td><button id="send">Send Program</button></td>
         <td><button id="fullscreen">Fullscreen</button></td>
         <td><label for="scr_on">Settings</label><br><input id="settings" type="checkbox"/></select></td>
+        <td><label for="metronome">Metronome</label><br><input id="metronome" type="checkbox"/></select></td>
       </tr>        
     </table>
   </div>
@@ -39,17 +42,45 @@
             <option value="setup_for_helix">Helix</option>
           </select>
         </td>
-        <td><label for="scr_on"   >Display Always On</label><br><input  id="scr_on"   type="checkbox"/></select></td>
-        <td><label for="inc_buts" >Buttons +/-</label><br><input  id="inc_buts"  type="checkbox"/></td>        
-        <td><label for="bank_size">BankSize:  </label><br><input  id="bank_size" type="number" min="0" max="128" value="128"/></td>
-        <td><label for="cols_num" >Cols:      </label><br><input  id="cols_num"  type="number" min="0" max="20"  value="3"/></td>
-        <td><label for="rows_num" >Rows:      </label><br><input  id="rows_num"  type="number" min="0" max="255" value="3"/></td>
-        <td><label for="col_name" >Cols Name: </label><br><select id="col_name"><option value="col_name_number">Number</option><option value="col_name_number_plus1">Number+1</option><option value="col_name_character">Character</option></select></td>
-        <td><label for="row_name" >Row Name:  </label><br><select id="row_name"><option value="row_name_number">Number</option><option value="row_name_number_plus1">Number+1</option><option value="row_name_character">Character</option></select></td>
+        <td><label for="scr_on"    >Display Always On</label><br><input  id="scr_on"   type="checkbox"/></select></td>
+        <td><label for="inv_layout">Inverted Layout</label><br><input  id="inv_layout" type="checkbox"/></select></td>
+        <td><label for="inc_buts"  >Buttons +/-</label><br><input  id="inc_buts"   type="checkbox"/></td>        
+        <td><label for="bank_size" >BankSize:  </label><br><input  id="bank_size"  type="number" min="0" max="128" value="128"/></td>
+        <td><label for="cols_num"  >Cols:      </label><br><input  id="cols_num"   type="number" min="0" max="20"  value="3"/></td>
+        <td><label for="rows_num"  >Rows:      </label><br><input  id="rows_num"   type="number" min="0" max="255" value="3"/></td>
+        <td><label for="col_name"  >Cols Name: </label><br><select id="col_name"><option value="col_name_number">Number</option><option value="col_name_number_plus1">Number+1</option><option value="col_name_character">Character</option></select></td>
+        <td><label for="row_name"  >Row Name:  </label><br><select id="row_name"><option value="row_name_number">Number</option><option value="row_name_number_plus1">Number+1</option><option value="row_name_character">Character</option></select></td>
       </tr>        
     </table>
   </div>
-
+  <div id="metronome_section" style="display:none;">
+    <span class="section_title">Metronome</span>
+    <table id="metronome_table">
+      <tr>
+        <td><label for="metronome_on" >On/Off</label><br><input id="metronome_on" type="checkbox"/></select></td>
+        <td><label for="metronome_bpm">Bpm:</label><br><input  id="metronome_bpm" type="number" min="20" max="340" value="120"/></td>
+        <td><button id="metronome_bpm_inc">BPM+</button></td>
+        <td><button id="metronome_bpm_dec">BPM-</button></td>
+        <td><label for="metronome_vol">Vol:</label><br><input  id="metronome_vol" type="number" min="0" max="100" value="100"/></td>
+        <td><button id="metronome_vol_inc">VOL+</button></td>
+        <td><button id="metronome_vol_dec">VOL-</button></td>
+                                                                    <td style="display:none;"><label for="metronome_bal">Balance:</label><br><input  id="metronome_bal" type="number" min="-100" max="100" value="0"/></td>
+        <td>
+          <label for="metronome_ryt">Rythm:</label><br>
+          <select id="metronome_ryt">
+            <option value="metronome_ryt_Qqqqqqqq" >Qqqqqqqq</option>
+            <option value="metronome_ryt_Qqqqqqq"  >Qqqqqqq</option>
+            <option value="metronome_ryt_Qqqqqq"   >Qqqqqq</option>
+            <option value="metronome_ryt_Qqqqq"    >Qqqqq</option>
+            <option value="metronome_ryt_Qqqq"     >Qqqq</option>
+            <option value="metronome_ryt_Qqq"      >Qqq</option>
+            <option value="metronome_ryt_Qq"       >Qq</option>
+            <option value="metronome_ryt_Q"        >Q</option>
+          </select>
+        </td>
+      </tr>        
+    </table>
+  </div>  
   <div id="buttons_inc_dec_section">
     <div id="buttons_inc_dec_container">
       <button id="decrement" class='button_big_name'>-</button>

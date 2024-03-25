@@ -21,6 +21,7 @@ let incrementButton =null;
 
 // Sections
 let settingsSection       =null;
+let metronomeSection      =null;
 let incDecSettingsSection =null;
 let buttonsGridSection    =null;
 
@@ -37,14 +38,21 @@ let currentState =
 { "midiDevice" : ""
 , "program"    : 0
 , "settings"   : true
+, "metronome"  : false
 , "setup"      : "none"
 , "alwaysOn"   : true
+, "invLayout"  : false
 , "incDecCtrl" : true
+, "bankSize"   : "128"
 , "colsNum"    : 3
 , "rowsNum"    : 5
 , "colName"    : "col_name_character"
 , "rowName"    : "row_name_number"
-, "bankSize"   : "128"
+, "metroOn"    : false
+, "metroBpm"   : 120
+, "metroVol"   : 100
+, "metroBal"   : 0
+, "metroRyt"   : "Qqqq"
 };
 
 let incommingState = { ...currentState };
@@ -63,6 +71,70 @@ function execute_incommingState ( forced, record_state_cookie )
 
     if ( settingsCheckBox.checked!=incommingState["settings" ] ) 
     settingsCheckBox.checked=incommingState["settings" ];
+  }
+
+  if ( forced || (incommingState["metronome"] != currentState["metronome"] ) ) 
+  {
+    if (incommingState["metronome"])
+        metronomeSection.style.display = "block";
+    else
+      metronomeSection.style.display = "none";
+
+    if ( metronomeCheckBox.checked!=incommingState["metronome" ] ) 
+    metronomeCheckBox.checked=incommingState["metronome" ];
+  }
+
+  if ( forced || (incommingState["metroOn"] != currentState["metroOn"] ) )
+  {
+    if (incommingState["metroOn"]) {
+      metronome_start();
+    } else {
+      metronome_stop();
+    }
+
+    if (metroOnCheckBox.checked!=incommingState["metroOn"]) 
+    metroOnCheckBox.checked=incommingState["metroOn"];
+  }
+
+  if ( forced || (incommingState["metroBpm"] != currentState["metroBpm"] ) )
+  {
+    metronome_tempo=incommingState["metroBpm"];
+    updateMetronome();
+
+    if (bpmInput.value!=incommingState["metroBpm"]) 
+      bpmInput.value=incommingState["metroBpm"];
+  }
+
+  if ( forced || (incommingState["metroVol"] != currentState["metroVol"] ) )
+  {
+    metronome_volume=incommingState["metroVol"]/100;
+
+    if (volInput.value!=incommingState["metroVol"]) 
+      volInput.value=incommingState["metroVol"];
+  }
+
+  if ( forced || (incommingState["metroBal"] != currentState["metroBal"] ) )
+  {
+    if (balanceInput.value!=incommingState["metroBal"]) 
+      balanceInput.value=incommingState["metroBal"];
+  }
+
+  if ( forced || (incommingState["metroRyt"] != currentState["metroRyt"] ) )
+  {
+    switch(incommingState["metroRyt"]) 
+    {
+      case "metronome_ryt_Q"        : metronome_accent=1; updateMetronome(); break;
+      case "metronome_ryt_Qq"       : metronome_accent=2; updateMetronome(); break;
+      case "metronome_ryt_Qqq"      : metronome_accent=3; updateMetronome(); break;
+      case "metronome_ryt_Qqqq"     : metronome_accent=4; updateMetronome(); break;
+      case "metronome_ryt_Qqqqq"    : metronome_accent=5; updateMetronome(); break;
+      case "metronome_ryt_Qqqqqq"   : metronome_accent=6; updateMetronome(); break;
+      case "metronome_ryt_Qqqqqqq"  : metronome_accent=7; updateMetronome(); break;
+      case "metronome_ryt_Qqqqqqqq" : metronome_accent=8; updateMetronome(); break;
+    }
+    
+    if (rythmSelect.value!=incommingState["metroRyt"]) 
+      rythmSelect.value=incommingState["metroRyt"];
   }
 
   if ( forced || ( incommingState["setup"] != currentState["setup"] ) ) 
@@ -89,6 +161,17 @@ function execute_incommingState ( forced, record_state_cookie )
       alwaysOnCheckBox.checked=incommingState["alwaysOn"  ];
   }
 
+  if ( forced || (incommingState["invLayout"] != currentState["invLayout"] ) )
+  {    
+    if (incommingState["invLayout"])
+      document.body.style.flexDirection = "column-reverse";
+    else
+      document.body.style.flexDirection = "column";
+
+    if ( invLayoutCheckBox.checked!=incommingState["invLayout"] ) 
+      invLayoutCheckBox.checked=incommingState["invLayout"];
+  }
+
   if ( forced || (incommingState["incDecCtrl"] != currentState["incDecCtrl"] ) )
   {    
     if (incommingState["incDecCtrl"])
@@ -96,12 +179,11 @@ function execute_incommingState ( forced, record_state_cookie )
     else
       incDecSettingsSection.style.display = "none";
 
-      if ( incDecCheckBox.checked!=incommingState["incDecCtrl"] ) 
-        incDecCheckBox.checked=incommingState["incDecCtrl"];
-    }
+    if ( incDecCheckBox.checked!=incommingState["incDecCtrl"] ) 
+      incDecCheckBox.checked=incommingState["incDecCtrl"];
+  }
 
-  let update_grid=forced;
-    
+  let update_grid=forced;    
   if ( forced || (incommingState["colsNum"] != currentState["colsNum"] ) ) { if (colsNumInput .value!=incommingState["colsNum"]) colsNumInput .value=incommingState["colsNum"] ; update_grid=true; }
   if ( forced || (incommingState["rowsNum"] != currentState["rowsNum"] ) ) { if (rowsNumInput .value!=incommingState["rowsNum"]) rowsNumInput .value=incommingState["rowsNum"] ; update_grid=true; }
   if ( forced || (incommingState["colName"] != currentState["colName"] ) ) { if (colNameSelect.value!=incommingState["colName"]) colNameSelect.value=incommingState["colName"] ; update_grid=true; }
@@ -207,6 +289,57 @@ function getCookie(name)
   }
 
   return null;
+}
+
+//----------------------------------------------------------------------------------------------------------
+// METRONOME
+//----------------------------------------------------------------------------------------------------------
+
+let metronome_timerId = null;
+let metronome_tempo = 120;
+let metronome_volume = 0.1;
+let metronome_count = 0;
+let metronome_accent = 4;
+
+let metronome_clickSound = null;
+let metronome_clackSound = null;
+
+function metronome_setup() {
+  metronome_clickSound = document.getElementById('clickSound');
+  metronome_clackSound = document.getElementById('clackSound');
+}
+
+function metronome_playClick() {
+  if ( (metronome_count%metronome_accent)==0 ) {
+    metronome_clackSound.volume = metronome_volume;
+    metronome_clackSound.play();
+  } else {
+    metronome_clickSound.volume = metronome_volume;
+    metronome_clickSound.play();
+  }
+  metronome_count++;
+}
+
+function metronome_start() {
+  if (metronome_timerId==null) {
+    metronome_count=0;
+    metronome_playClick();
+    metronome_timerId = setInterval(metronome_playClick, 60000 / metronome_tempo);
+  }
+}
+
+function metronome_stop() {
+  if (metronome_timerId!=null) {
+    clearInterval(metronome_timerId);
+    metronome_timerId=null;
+  }
+}
+
+function updateMetronome() {
+  if (metronome_timerId!=null) {
+    metronome_stop();
+    metronome_start();
+  }
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -331,49 +464,76 @@ function on_load()
 {
   console.log("on_load");
 
+  metronome_setup();
+
+  // Sections
+  settingsSection       = document.getElementById("settings_section"       );
+  metronomeSection      = document.getElementById("metronome_section"      );
+  incDecSettingsSection = document.getElementById("buttons_inc_dec_section");
+  buttonsGridSection    = document.getElementById("buttons_grid_section"   );
+
   //Main controls
-  devicesSelect    = document.getElementById("devices");
-  refreshButton    = document.getElementById("refresh");
-  programInput     = document.getElementById("program");
-  sendButton       = document.getElementById("send");
+  devicesSelect    = document.getElementById("devices"   );
+  refreshButton    = document.getElementById("refresh"   );
+  programInput     = document.getElementById("program"   );
+  sendButton       = document.getElementById("send"      );
   fullscreenButton = document.getElementById('fullscreen');
-  settingsCheckBox = document.getElementById("settings");
+  settingsCheckBox = document.getElementById("settings"  );
+  metronomeCheckBox= document.getElementById("metronome" );
+
+  devicesSelect    .addEventListener('change', function () { incommingState["midiDevice"] = devicesSelect   .value  ; execute_incommingState(false, true); } );
+  refreshButton    .addEventListener('click' , refreshMidiDevicesList);  
+  fullscreenButton .addEventListener('click' , toggleFullscreen      );  
+  programInput     .addEventListener('change', function () { incommingState["program"   ] = programInput     .value  ; execute_incommingState(false, true); } );
+  settingsCheckBox .addEventListener('change', function () { incommingState["settings"  ] = settingsCheckBox .checked; execute_incommingState(false, true); } );
+  metronomeCheckBox.addEventListener('change', function () { incommingState["metronome" ] = metronomeCheckBox.checked; execute_incommingState(false, true); } );
 
   // Settings controls
-  setupSelect      = document.getElementById("setup_for");
-  alwaysOnCheckBox = document.getElementById("scr_on");
-  incDecCheckBox   = document.getElementById("inc_buts");
-  bankSizeInput    = document.getElementById("bank_size");
-  colsNumInput     = document.getElementById("cols_num");
-  rowsNumInput     = document.getElementById("rows_num");
-  colNameSelect    = document.getElementById("col_name");
-  rowNameSelect    = document.getElementById("row_name");
+  setupSelect      = document.getElementById("setup_for" );
+  alwaysOnCheckBox = document.getElementById("scr_on"    );
+  invLayoutCheckBox= document.getElementById("inv_layout");  
+  incDecCheckBox   = document.getElementById("inc_buts"  );
+  bankSizeInput    = document.getElementById("bank_size" );
+  colsNumInput     = document.getElementById("cols_num"  );
+  rowsNumInput     = document.getElementById("rows_num"  );
+  colNameSelect    = document.getElementById("col_name"  );
+  rowNameSelect    = document.getElementById("row_name"  );
+
+  setupSelect      .addEventListener('change', function () { incommingState["setup"     ] = setupSelect      .value  ; execute_incommingState(false, true); } );
+  alwaysOnCheckBox .addEventListener('change', function () { incommingState["alwaysOn"  ] = alwaysOnCheckBox .checked; execute_incommingState(false, true); } );
+  invLayoutCheckBox.addEventListener('change', function () { incommingState["invLayout" ] = invLayoutCheckBox.checked; execute_incommingState(false, true); } );
+  incDecCheckBox   .addEventListener('change', function () { incommingState["incDecCtrl"] = incDecCheckBox   .checked; execute_incommingState(false, true); } );
+  bankSizeInput    .addEventListener('change', function () { incommingState["bankSize"  ] = bankSizeInput    .value  ; execute_incommingState(false, true); } );
+  colsNumInput     .addEventListener('change', function () { incommingState["colsNum"   ] = colsNumInput     .value  ; execute_incommingState(false, true); } );
+  rowsNumInput     .addEventListener('change', function () { incommingState["rowsNum"   ] = rowsNumInput     .value  ; execute_incommingState(false, true); } );
+  colNameSelect    .addEventListener('change', function () { incommingState["colName"   ] = colNameSelect    .value  ; execute_incommingState(false, true); } );
+  rowNameSelect    .addEventListener('change', function () { incommingState["rowName"   ] = rowNameSelect    .value  ; execute_incommingState(false, true); } );
+
+  // Metronome controls
+  metroOnCheckBox  = document.getElementById("metronome_on"     );
+  bpmInput         = document.getElementById("metronome_bpm"    );
+  bpmIncButton     = document.getElementById("metronome_bpm_inc");
+  bpmDecButton     = document.getElementById("metronome_bpm_dec");
+  volInput         = document.getElementById("metronome_vol"    );
+  volIncButton     = document.getElementById("metronome_vol_inc");
+  volDecButton     = document.getElementById("metronome_vol_dec");
+  balanceInput     = document.getElementById("metronome_bal"    );
+  rythmSelect      = document.getElementById("metronome_ryt"    );
+  
+  metroOnCheckBox  .addEventListener('change', function () { incommingState["metroOn"  ] = metroOnCheckBox.checked; execute_incommingState(false, true); } );
+  bpmInput         .addEventListener('change', function () { incommingState["metroBpm" ] = parseInt(bpmInput.value); execute_incommingState(false, true); } );
+  bpmIncButton     .addEventListener('click' , function () { let p=bpmInput.value; bpmInput.value=parseInt(bpmInput.value)+5; if (bpmInput.checkValidity()) bpmInput.dispatchEvent(new Event('change')); else bpmInput.value=p;} );
+  bpmDecButton     .addEventListener('click' , function () { let p=bpmInput.value; bpmInput.value=parseInt(bpmInput.value)-5; if (bpmInput.checkValidity()) bpmInput.dispatchEvent(new Event('change')); else bpmInput.value=p;} );
+  volInput         .addEventListener('change', function () { incommingState["metroVol" ] = parseInt(volInput.value); execute_incommingState(false, true); } );
+  volIncButton     .addEventListener('click' , function () { let p=volInput.value; volInput.value=parseInt(volInput.value)+5; if (volInput.checkValidity()) volInput.dispatchEvent(new Event('change')); else volInput.value=p;} );
+  volDecButton     .addEventListener('click' , function () { let p=volInput.value; volInput.value=parseInt(volInput.value)-5; if (volInput.checkValidity()) volInput.dispatchEvent(new Event('change')); else volInput.value=p;} );
+  balanceInput     .addEventListener('change', function () { incommingState["metroBal" ] = balanceInput   .value  ; execute_incommingState(false, true); } );
+  rythmSelect      .addEventListener('change', function () { incommingState["metroRyt" ] = rythmSelect    .value  ; execute_incommingState(false, true); } );
 
   // IncDec controls
   decrementButton = document.getElementById("decrement");
   incrementButton = document.getElementById("increment");
 
-  // Sections
-  settingsSection       = document.getElementById("settings_section"       );
-  incDecSettingsSection = document.getElementById("buttons_inc_dec_section");
-  buttonsGridSection    = document.getElementById("buttons_grid_section"   );
-
-  // Load settings
-  devicesSelect   .addEventListener('change', function () { incommingState["midiDevice"] = devicesSelect   .value  ; execute_incommingState(false, true); } );
-  refreshButton   .addEventListener('click' , refreshMidiDevicesList);  
-  fullscreenButton.addEventListener('click' , toggleFullscreen      );  
-  programInput    .addEventListener('change', function () { incommingState["program"   ] = programInput    .value  ; execute_incommingState(false, true); } );
-  settingsCheckBox.addEventListener('change', function () { incommingState["settings"  ] = settingsCheckBox.checked; execute_incommingState(false, true); } );
-  setupSelect     .addEventListener('change', function () { incommingState["setup"     ] = setupSelect     .value  ; execute_incommingState(false, true); } );
-  alwaysOnCheckBox.addEventListener('change', function () { incommingState["alwaysOn"  ] = alwaysOnCheckBox.checked; execute_incommingState(false, true); } );
-  incDecCheckBox  .addEventListener('change', function () { incommingState["incDecCtrl"] = incDecCheckBox  .checked; execute_incommingState(false, true); } );
-  bankSizeInput   .addEventListener('change', function () { incommingState["bankSize"  ] = bankSizeInput   .value  ; execute_incommingState(false, true); } );
-  colsNumInput    .addEventListener('change', function () { incommingState["colsNum"   ] = colsNumInput    .value  ; execute_incommingState(false, true); } );
-  rowsNumInput    .addEventListener('change', function () { incommingState["rowsNum"   ] = rowsNumInput    .value  ; execute_incommingState(false, true); } );
-  colNameSelect   .addEventListener('change', function () { incommingState["colName"   ] = colNameSelect   .value  ; execute_incommingState(false, true); } );
-  rowNameSelect   .addEventListener('change', function () { incommingState["rowName"   ] = rowNameSelect   .value  ; execute_incommingState(false, true); } );
-
-  // Decrement
   decrementButton .addEventListener('click' , function () { incommingState["program"]--; execute_incommingState(false, true); } );
   incrementButton .addEventListener('click' , function () { incommingState["program"]++; execute_incommingState(false, true); } );
 
@@ -388,6 +548,7 @@ function on_load()
   if (stateCookie!=null) 
   {
     incommingState=JSON.parse(stateCookie);
+    incommingState["metroOn"]=false;
     execute_incommingState(false, false);
   }
 }
