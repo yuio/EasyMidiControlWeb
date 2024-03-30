@@ -190,12 +190,13 @@ function execute_incommingState ( forced, record_state_cookie )
       incDecCheckBox.checked=incommingState["incDecCtrl"];
   }
 
-  let update_grid_needed=forced;
-  if ( incommingState["colsNum"] != currentState["colsNum"] ) { if (colsNumInput .value!=incommingState["colsNum"]) colsNumInput .value=incommingState["colsNum"] ; update_grid_needed=true; }
-  if ( incommingState["rowsNum"] != currentState["rowsNum"] ) { if (rowsNumInput .value!=incommingState["rowsNum"]) rowsNumInput .value=incommingState["rowsNum"] ; update_grid_needed=true; }
-  if ( incommingState["colName"] != currentState["colName"] ) { if (colNameSelect.value!=incommingState["colName"]) colNameSelect.value=incommingState["colName"] ; update_grid_needed=true; }
-  if ( incommingState["rowName"] != currentState["rowName"] ) { if (rowNameSelect.value!=incommingState["rowName"]) rowNameSelect.value=incommingState["rowName"] ; update_grid_needed=true; }
-  if ( update_grid_needed )
+  let update_grid_needed=false;
+  if ( forced || (incommingState["colsNum"] != currentState["colsNum"]) ) { if (colsNumInput .value!=incommingState["colsNum"]) colsNumInput .value=incommingState["colsNum"] ; update_grid_needed=true; }
+  if ( forced || (incommingState["rowsNum"] != currentState["rowsNum"]) ) { if (rowsNumInput .value!=incommingState["rowsNum"]) rowsNumInput .value=incommingState["rowsNum"] ; update_grid_needed=true; }
+  if ( forced || (incommingState["colName"] != currentState["colName"]) ) { if (colNameSelect.value!=incommingState["colName"]) colNameSelect.value=incommingState["colName"] ; update_grid_needed=true; }
+  if ( forced || (incommingState["rowName"] != currentState["rowName"]) ) { if (rowNameSelect.value!=incommingState["rowName"]) rowNameSelect.value=incommingState["rowName"] ; update_grid_needed=true; }
+  
+  if ( forced || update_grid_needed )
     update_grid();
 
   if ( forced || (incommingState["program"] != currentState["program"] ) || (incommingState["bankSize"] != currentState["bankSize"]) )
@@ -398,7 +399,9 @@ function preset_names_watcher() {
       preset_names_watcher_stop(false);
     }
     else
-      console.log("name request:"+preset_number);
+    {
+      //console.log("name request:"+preset_number);
+    }
   }
 }
 
@@ -567,8 +570,10 @@ function processSysEx ( message ) {
             console.log (`name accepted: preset (${address_num.toString(16)}) ${preset_number}:${preset_name}`);
             //console.log("name accepted "+preset_number);
           }
-          else
-            console.log("ignoring old name request ");
+          else 
+          {
+            //console.log("ignoring old name request ");
+          }
 
           buttonname=document.getElementById("buttonname"+preset_number);
           if (buttonname!=undefined)
