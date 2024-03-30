@@ -22,6 +22,7 @@ let decrementButton =null;
 let incrementButton =null;
 
 // Sections
+let fullContainer         =null;
 let settingsSection       =null;
 let metronomeSection      =null;
 let incDecSettingsSection =null;
@@ -170,9 +171,9 @@ function execute_incommingState ( forced, record_state_cookie )
   if ( forced || (incommingState["invLayout"] != currentState["invLayout"] ) )
   {    
     if (incommingState["invLayout"])
-      document.body.style.flexDirection = "column-reverse";
+      fullContainer.style.flexDirection = "column-reverse";
     else
-      document.body.style.flexDirection = "column";
+      fullContainer.style.flexDirection = "column";
 
     if ( invLayoutCheckBox.checked!=incommingState["invLayout"] ) 
       invLayoutCheckBox.checked=incommingState["invLayout"];
@@ -778,6 +779,7 @@ function on_load()
   metronome_setup();
 
   // Sections
+  fullContainer         = document.getElementById("full_container"         );
   settingsSection       = document.getElementById("settings_section"       );
   metronomeSection      = document.getElementById("metronome_section"      );
   incDecSettingsSection = document.getElementById("buttons_inc_dec_section");
