@@ -154,6 +154,7 @@ function execute_incommingState ( forced, record_state_cookie )
       case "setup_for_helix"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 32; incommingState["colName"]="col_name_character"   ; incommingState["rowName"]="row_name_number_plus1"; break;
     }    
 
+    incommingState["setup"]="none";
     setupSelect.value="none";
   }
 
