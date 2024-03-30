@@ -1,3 +1,5 @@
+// TO DO: ask GT-1000 current program selecion
+
 // Main controls
 let devicesSelect   =null;
 let refreshButton   =null;
@@ -187,59 +189,18 @@ function execute_incommingState ( forced, record_state_cookie )
       incDecCheckBox.checked=incommingState["incDecCtrl"];
   }
 
-  let update_grid=forced;    
-  if ( forced || (incommingState["colsNum"] != currentState["colsNum"] ) ) { if (colsNumInput .value!=incommingState["colsNum"]) colsNumInput .value=incommingState["colsNum"] ; update_grid=true; }
-  if ( forced || (incommingState["rowsNum"] != currentState["rowsNum"] ) ) { if (rowsNumInput .value!=incommingState["rowsNum"]) rowsNumInput .value=incommingState["rowsNum"] ; update_grid=true; }
-  if ( forced || (incommingState["colName"] != currentState["colName"] ) ) { if (colNameSelect.value!=incommingState["colName"]) colNameSelect.value=incommingState["colName"] ; update_grid=true; }
-  if ( forced || (incommingState["rowName"] != currentState["rowName"] ) ) { if (rowNameSelect.value!=incommingState["rowName"]) rowNameSelect.value=incommingState["rowName"] ; update_grid=true; }
-  if ( update_grid )
+  let update_grid_needed=forced;
+  if ( incommingState["colsNum"] != currentState["colsNum"] ) { if (colsNumInput .value!=incommingState["colsNum"]) colsNumInput .value=incommingState["colsNum"] ; update_grid_needed=true; }
+  if ( incommingState["rowsNum"] != currentState["rowsNum"] ) { if (rowsNumInput .value!=incommingState["rowsNum"]) rowsNumInput .value=incommingState["rowsNum"] ; update_grid_needed=true; }
+  if ( incommingState["colName"] != currentState["colName"] ) { if (colNameSelect.value!=incommingState["colName"]) colNameSelect.value=incommingState["colName"] ; update_grid_needed=true; }
+  if ( incommingState["rowName"] != currentState["rowName"] ) { if (rowNameSelect.value!=incommingState["rowName"]) rowNameSelect.value=incommingState["rowName"] ; update_grid_needed=true; }
+  if ( update_grid_needed )
+    update_grid();
+
+  if ( forced || (incommingState["program"] != currentState["program"] ) || (incommingState["bankSize"] != currentState["bankSize"]) )
   {
-    let col_number = (incommingState["colName"]!="col_name_character");
-    let row_number = (incommingState["rowName"]!="row_name_character");
-
-    let col_number_base = (incommingState["colName"]=="col_name_number_plus1"?1:0);
-    let row_number_base = (incommingState["rowName"]=="row_name_number_plus1"?1:0);
-
-    let eachButtonWidth= ""+Math.floor(90/incommingState["colsNum"])+"%";
-    function clickevent(n) { return function(event) { incommingState["program"]=n; execute_incommingState(false, true); } }
-
-    buttonsGridSection.innerHTML = '';    
-    let num=0;
-    for (let y=0; y!=incommingState["rowsNum"]; y++) 
-    {
-      d=document.createElement("div");
-      d.classList.add("buttons_grid_row_container");      
-      for (let x=0; x!=incommingState["colsNum"]; x++) 
-      {
-        b=document.createElement("button");
-
-        b.id="programbutton_"+num;
-
-        b.style.width=eachButtonWidth;
-        b.addEventListener('click' , clickevent(num) );
-        
-        buttonName =(row_number?(y+row_number_base).toString():String.fromCharCode(65 + y));
-        buttonName+="-"
-        buttonName+=(col_number?(x+col_number_base).toString():String.fromCharCode(65 + x));
-        
-        b.innerHTML="<span class='button_big_name'>"+buttonName+"</span><br><span>("+num+")</span><span id='buttonname"+num+"'></span>";
-        
-        d.appendChild(b);
-        num++;
-      }
-      buttonsGridSection.appendChild(d);
-    }
-  }
-
-  if ( forced || update_grid || (incommingState["program"] != currentState["program"] ) || (incommingState["bankSize"] != currentState["bankSize"]) )
-  {
-    var previously_selected = document.querySelectorAll(".buttons_grid_row_container .button_grid_selected");
-    previously_selected.forEach(function(e) { e.classList.remove("button_grid_selected"); });
-
-    b = document.getElementById("programbutton_"+incommingState["program"]);
-    if (b!=null)
-      b.classList.add("button_grid_selected");
-          
+    update_grid_selected_program();
+    
     selectMidiProgram(incommingState["program"], incommingState["bankSize"]);
     
     if (bankSizeInput.value!=incommingState["bankSize"]) 
@@ -266,6 +227,64 @@ function execute_incommingState ( forced, record_state_cookie )
 
   if ( record_state_cookie )
     setCookie("appState",  JSON.stringify(currentState));
+}
+
+function update_grid_selected_program()
+{
+  var previously_selected = document.querySelectorAll(".buttons_grid_row_container .button_grid_selected");
+  previously_selected.forEach(function(e) { e.classList.remove("button_grid_selected"); });
+
+  b = document.getElementById("programbutton_"+incommingState["program"]);
+  if (b!=null)
+    b.classList.add("button_grid_selected");
+}
+
+function update_grid()
+{
+  console.log("updating grid");
+
+  let col_number = (incommingState["colName"]!="col_name_character");
+  let row_number = (incommingState["rowName"]!="row_name_character");
+
+  let col_number_base = (incommingState["colName"]=="col_name_number_plus1"?1:0);
+  let row_number_base = (incommingState["rowName"]=="row_name_number_plus1"?1:0);
+
+  let eachButtonWidth= ""+Math.floor(90/incommingState["colsNum"])+"%";
+  function clickevent(n) { return function(event) { incommingState["program"]=n; execute_incommingState(false, true); } }
+
+  buttonsGridSection.innerHTML = '';    
+  let num=0;
+  for (let y=0; y!=incommingState["rowsNum"]; y++) 
+  {
+    d=document.createElement("div");
+    d.classList.add("buttons_grid_row_container");      
+    for (let x=0; x!=incommingState["colsNum"]; x++) 
+    {
+      b=document.createElement("button");
+
+      b.id="programbutton_"+num;
+
+      b.style.width=eachButtonWidth;
+      b.addEventListener('click' , clickevent(num) );
+      
+      buttonName =(row_number?(y+row_number_base).toString():String.fromCharCode(65 + y));
+      buttonName+="-"
+      buttonName+=(col_number?(x+col_number_base).toString():String.fromCharCode(65 + x));
+
+      preset_name=""
+      if (selectDevice_preset_names)
+        if (selectDevice_preset_names[num]!=null)
+          preset_name=selectDevice_preset_names[num];
+
+      b.innerHTML="<span class='button_big_name'>"+buttonName+"</span><br><span id='buttonname"+num+"'>"+preset_name+"</span><span>("+num+")</span>";
+      
+      d.appendChild(b);
+      num++;
+    }
+    buttonsGridSection.appendChild(d);
+  }
+
+  update_grid_selected_program();
 }
 
 //----------------------------------------------------------------------------------------------------------
@@ -347,10 +366,11 @@ function updateMetronome() {
 }
 
 //----------------------------------------------------------------------------------------------------------
-// MIDI 
+// Names watcher
 //----------------------------------------------------------------------------------------------------------
 
 let preset_names_watcher_waiting_preset=null;
+let preset_names_watcher_timerId=null;
 function preset_names_watcher() {
   if (preset_names_watcher_waiting_preset==null) {
     for( preset_number=0; preset_number!=selectDevice_preset_names.length; preset_number++)
@@ -367,12 +387,41 @@ function preset_names_watcher() {
         }
         send_gt1000_sysex_Request_Data_1_RQ1 (selectDevice_identity["channel"], address, [0x00,0x00,0x00,0x10] );
         preset_names_watcher_waiting_preset=preset_number;
-        console.log("name request:"+preset_number);
+        //console.log("name request:"+preset_number);
         break;
       }
     }
+
+    if (preset_names_watcher_waiting_preset==null) {
+      console.log("names list complete");
+      preset_names_watcher_stop(false);
+    }
+    else
+      console.log("name request:"+preset_number);
   }
 }
+
+function preset_names_watcher_start(presets_num) 
+{
+  preset_names_watcher_stop(true)
+  preset_names_watcher_waiting_preset=null;
+  selectDevice_preset_names= new Array(presets_num).fill(null);
+  preset_names_watcher_timerId = setInterval(preset_names_watcher, 50);
+}
+
+function preset_names_watcher_stop(clear_names) 
+{
+  if (preset_names_watcher_timerId!=null)
+    clearInterval(preset_names_watcher_timerId);
+  preset_names_watcher_timerId = null;
+
+  if (clear_names)
+    selectDevice_preset_names=[];
+}
+
+//----------------------------------------------------------------------------------------------------------
+// MIDI - Sysex
+//----------------------------------------------------------------------------------------------------------
 
 function send_gt1000_sysex_Request_Data_1_RQ1 ( channel, address, size ) 
 {
@@ -383,7 +432,7 @@ function send_gt1000_sysex_Request_Data_1_RQ1 ( channel, address, size )
   if (checksum==128) checksum=0;
   
   const data = [0xF0, 0x41, channel, 0x00, 0x00, 0x00, 0x4F, 0x11, address[0], address[1], address[2], address[3], size[0], size[1], size[2], size[3], checksum, 0xF7 ];
-  console.log(bytes_array_to_hexstring(data));
+  //console.log(bytes_array_to_hexstring(data));
   selectDeviceOUT.send(data);
 }
 
@@ -483,45 +532,47 @@ function processSysEx ( message ) {
     console.log (selectDevice_identity);
     if (message[6+offset_bytes]==0x4f) {
       console.log ("GT-1000 detected");      
-      preset_names_watcher_waiting_preset=null;
-      selectDevice_preset_names= new Array(250).fill(null);
-      preset_names_watcher_timerId = setInterval(preset_names_watcher, 50);      
+      preset_names_watcher_start(250);
     }
   }
 
   // Check GT-1000 reception
-  let channel=selectDevice_identity["channel"];
-  if (channel)
+  if (selectDevice_identity)
   {
-    if (  message[1]==0x41 
-      && message[2]==selectDevice_identity["channel"]
-      && message[3]==0x00 && message[4]==0x00 && message[5]==0x00 && message[6]==0x4f
-      && message[7]==0x12
-      ) 
+    let channel=selectDevice_identity["channel"];
+    if (channel)
     {
-      //console.log ("gt1000_sysex_Data_Set_1_DT1!!"+address.toString(16));
-      let address=message.slice(8,12);
-      let address_num=bytesarray_to_num(address);
-      if (address_num>=0x20000000 && address_num<=0x21790000)
+      if (  message[1]==0x41 
+        && message[2]==selectDevice_identity["channel"]
+        && message[3]==0x00 && message[4]==0x00 && message[5]==0x00 && message[6]==0x4f
+        && message[7]==0x12
+        ) 
       {
-        let preset_number=(address[0]==0x20)?(address[1]):(address[1]+128)
-
-        let preset_name= bytesarray_to_string(message.slice(12,-2));        
-        console.log (`preset (${address_num.toString(16)}) ${preset_number}:${preset_name}`);
-
-        // check if its an old request or really is what we are waiting
-        if (preset_number==preset_names_watcher_waiting_preset) 
+        //console.log ("gt1000_sysex_Data_Set_1_DT1!!"+address.toString(16));
+        let address=message.slice(8,12);
+        let address_num=bytesarray_to_num(address);
+        if (address_num>=0x20000000 && address_num<=0x21790000)
         {
-          selectDevice_preset_names[preset_number]=preset_name;
-          preset_names_watcher_waiting_preset=null;
-          console.log("name accepted "+preset_number);
-        }
-        else
-          console.log("ignoring old name request ");
+          let preset_number=(address[0]==0x20)?(address[1]):(address[1]+128)
 
-        buttonname=document.getElementById("buttonname"+preset_number);
-        if (buttonname!=undefined)
-          buttonname.innerHTML=preset_name;
+          let preset_name= bytesarray_to_string(message.slice(12,-2)).trim();
+          //console.log (`preset (${address_num.toString(16)}) ${preset_number}:${preset_name}`);
+
+          // check if its an old request or really is what we are waiting
+          if (preset_number==preset_names_watcher_waiting_preset) 
+          {
+            selectDevice_preset_names[preset_number]=preset_name;
+            preset_names_watcher_waiting_preset=null;
+            console.log (`name accepted: preset (${address_num.toString(16)}) ${preset_number}:${preset_name}`);
+            //console.log("name accepted "+preset_number);
+          }
+          else
+            console.log("ignoring old name request ");
+
+          buttonname=document.getElementById("buttonname"+preset_number);
+          if (buttonname!=undefined)
+            buttonname.innerHTML=preset_name;
+        }
       }
     }
   }
@@ -547,6 +598,10 @@ function processMidiInput ( message )
   }
 }
 
+//----------------------------------------------------------------------------------------------------------
+// MIDI
+//----------------------------------------------------------------------------------------------------------
+
 function refreshMidiDevicesList()
 {  
   console.log("refreshMidiDevicesList");
@@ -555,22 +610,38 @@ function refreshMidiDevicesList()
   (
     function(access) 
     {
-      devicesSelect.innerHTML = '';
-      selectDeviceOUT=null;
-
-      let firstDevicePending=true;
       midiAccess = access;
+      devicesSelect.innerHTML = '';
+
+      // Close previous outputs
+      if (selectDeviceOUT) 
+      {
+        console.log("release input...:"+selectDeviceOUT.name);
+        selectDeviceOUT.close();
+        selectDeviceOUT=null;
+      }
+
+      // Close input
+      if (selectDeviceIN) 
+      {
+        console.log("release input...:"+selectDeviceIN.name);
+        selectDeviceIN.close();
+        selectDeviceIN=null;
+      }
 
       // Open input
+      let seek_input_name = currentState["midiDevice"]
+      seek_input_name=seek_input_name.replaceAll("out","in"); seek_input_name=seek_input_name.replaceAll("output","input");
+      seek_input_name=seek_input_name.replaceAll("Out","In"); seek_input_name=seek_input_name.replaceAll("Output","Input");
+      seek_input_name=seek_input_name.replaceAll("OUT","IN"); seek_input_name=seek_input_name.replaceAll("OUTPUT","INPUT");
       const inputs = midiAccess.inputs.values();
       for (let input = inputs.next(); input && !input.done; input = inputs.next())
       {
-        if (input.value.name==currentState["midiDevice"]) {
-          console.log("adquiring input...:"+currentState["midiDevice"]);
+        if (input.value.name==seek_input_name) {
+          console.log("adquiring input...:"+seek_input_name);
           selectDeviceIN=input.value;
           selectDevice_identity=null;
-          selectDevice_preset_names=[];
-          preset_names_watcher_timerId=null;
+          preset_names_watcher_stop(true);
 
           selectDeviceIN.onmidimessage = function(event) {
             var message = event.data;
@@ -578,8 +649,12 @@ function refreshMidiDevicesList()
           };
         }
       }
-      
+
+      if (selectDeviceIN==null)
+      console.log("no input device found named:"+seek_input_name);
+
       // Open output
+      let firstDevicePending=true;
       const outputs = midiAccess.outputs.values();
       for (let output = outputs.next(); output && !output.done; output = outputs.next())
       {
@@ -606,12 +681,15 @@ function refreshMidiDevicesList()
         }
       }
 
+      // Add No Midi Devices option when no outputs found
       if (firstDevicePending) 
       {
         const no_option = document.createElement("option");
         no_option.text="(No Midi Devices)";
         devicesSelect.add(no_option);
       }
+
+      update_grid();
     }
   )
 }
@@ -640,6 +718,7 @@ function selectMidiProgram(programNumber, bankSize)
 
 function selectMidiAskIdenty()
 {
+  // http://midi.teragonaudio.com/tech/midispec/identity.htm
   if (selectDeviceOUT && selectDeviceOUT.state === 'connected') 
   {
     console.log ("asking midi identity");
