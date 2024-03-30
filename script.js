@@ -27,8 +27,11 @@ let buttonsGridSection    =null;
 
 //----------------------------------------------------------------------------------------------------------
 
-let midiAccess    = null;
-let selectDevice = null;
+let midiAccess      = null;
+let selectDeviceOUT = null;
+let selectDeviceIN  = null;
+let selectDevice_identity=null;
+let selectDevice_preset_names=null;
 
 //----------------------------------------------------------------------------------------------------------
 // STATE
@@ -141,7 +144,8 @@ function execute_incommingState ( forced, record_state_cookie )
   {
     switch (incommingState["setup"]) 
     {
-      case "setup_for_gt1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 64; incommingState["colName"]="col_name_number_plus1"; incommingState["rowName"]="row_name_number_plus1"; break;
+      case "setup_for_gt1000c" : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 64; incommingState["colName"]="col_name_number_plus1"; incommingState["rowName"]="row_name_number_plus1"; break;
+      case "setup_for_gt1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 5; incommingState["rowsNum"]= 50; incommingState["colName"]="col_name_number_plus1"; incommingState["rowName"]="row_name_number_plus1"; break;
       case "setup_for_sy1000"  : incommingState["bankSize"]=  125; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 64; incommingState["colName"]="col_name_number_plus1"; incommingState["rowName"]="row_name_number_plus1"; break;
       case "setup_for_tonex"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 3; incommingState["rowsNum"]= 50; incommingState["colName"]="col_name_character"   ; incommingState["rowName"]="row_name_number"      ; break;
       case "setup_for_helix"   : incommingState["bankSize"]=  128; incommingState["colsNum"]= 4; incommingState["rowsNum"]= 32; incommingState["colName"]="col_name_character"   ; incommingState["rowName"]="row_name_number_plus1"; break;
@@ -218,7 +222,7 @@ function execute_incommingState ( forced, record_state_cookie )
         buttonName+="-"
         buttonName+=(col_number?(x+col_number_base).toString():String.fromCharCode(65 + x));
         
-        b.innerHTML="<span class='button_big_name'>"+buttonName+"</span><br><span>("+num+")</span>";
+        b.innerHTML="<span class='button_big_name'>"+buttonName+"</span><br><span>("+num+")</span><span id='buttonname"+num+"'></span>";
         
         d.appendChild(b);
         num++;
@@ -346,18 +350,236 @@ function updateMetronome() {
 // MIDI 
 //----------------------------------------------------------------------------------------------------------
 
-function refreshMidiDevicesList() 
+let preset_names_watcher_waiting_preset=null;
+function preset_names_watcher() {
+  if (preset_names_watcher_waiting_preset==null) {
+    for( preset_number=0; preset_number!=selectDevice_preset_names.length; preset_number++)
+    {
+      if (selectDevice_preset_names[preset_number]==null) {
+        address=[0x20,0x00,0x00,0x00];
+        const next_address_first_preset=128;
+        if (preset_number<next_address_first_preset)
+          address[1]+=preset_number;
+        else
+        {
+          address[0]+=1;
+          address[1]+=preset_number-next_address_first_preset;
+        }
+        send_gt1000_sysex_Request_Data_1_RQ1 (selectDevice_identity["channel"], address, [0x00,0x00,0x00,0x10] );
+        preset_names_watcher_waiting_preset=preset_number;
+        console.log("name request:"+preset_number);
+        break;
+      }
+    }
+  }
+}
+
+function send_gt1000_sysex_Request_Data_1_RQ1 ( channel, address, size ) 
 {
+  var checksum = 0;
+  checksum += address[0]+address[1]+address[2]+address[3];
+  checksum += size[0]+size[1]+size[2]+size[3];
+  checksum = 128 - Math.floor(checksum%128);
+  if (checksum==128) checksum=0;
+  
+  const data = [0xF0, 0x41, channel, 0x00, 0x00, 0x00, 0x4F, 0x11, address[0], address[1], address[2], address[3], size[0], size[1], size[2], size[3], checksum, 0xF7 ];
+  console.log(bytes_array_to_hexstring(data));
+  selectDeviceOUT.send(data);
+}
+
+function send_gt1000_sysex_Data_Set_1_DT1 ( channel, address, data_to_set ) 
+{
+}
+
+function bytes_array_to_hexstring( bytesarray ) 
+{
+  str = "";
+  for (i in bytesarray)
+  {
+    let databyte=bytesarray[i];
+    str+=databyte.toString(16).toUpperCase().padStart(2, '0')+" ";
+  }
+
+  return str;
+}
+
+function bytesarray_to_string ( bytesarray ) 
+{
+  str = "";
+  for (i in bytesarray)
+  {
+    let databyte=bytesarray[i];
+    str+= (databyte>=0x20 && databyte<0x7F)?String.fromCharCode(databyte):".";
+  }
+
+  return str;
+}
+
+function bytesarray_to_num ( bytesarray ) 
+{
+  let num=0;
+
+  for (i in bytesarray)
+    num = (num<<8) + bytesarray[i];
+
+  return num;
+}
+
+function processSysEx ( message ) {
+  //console.log (message);
+
+  // Check and store identity sysex
+  if (message[1]==0x7E && message[3]==0x06 && message[4]==0x02 ) {
+
+    selectDevice_identity = {}
+
+    // channel
+    selectDevice_identity["channel"    ]= message[2];
+    selectDevice_identity["channel_str"]= message[2].toString(16).toUpperCase().padStart(2, '0');
+    
+    // manufacturer id (single or double byte)
+    let offset_bytes=0;
+    let manufacturer_id     = message[5];
+    let manufacturer_id_str = message[5].toString(16).toUpperCase().padStart(2, '0');
+    if (manufacturer_id==0) {
+        manufacturer_id  = message[6]<<8;
+        manufacturer_id += message[7];
+        manufacturer_id_str  = message[6].toString(16).toUpperCase().padStart(2, '0')+" ";
+        manufacturer_id_str += message[7].toString(16).toUpperCase().padStart(2, '0');
+        offset_bytes=2;
+    }     
+    selectDevice_identity["manufacturer_id"    ]=manufacturer_id;
+    selectDevice_identity["manufacturer_id_str"]=manufacturer_id_str;
+
+    // family
+    let family_code  = message[6+offset_bytes]<<8;
+        family_code += message[7+offset_bytes];
+    selectDevice_identity["family_code"]= family_code;
+    let family_code_str  = message[6+offset_bytes].toString(16).toUpperCase().padStart(2, '0')+" ";
+        family_code_str += message[7+offset_bytes].toString(16).toUpperCase().padStart(2, '0');
+    selectDevice_identity["family_code_str"]= family_code_str;
+
+    // model
+    let model_number  = message[8+offset_bytes]<<8;
+        model_number += message[9+offset_bytes]   ;
+    selectDevice_identity["model_number"]= model_number;
+    let model_number_str  = message[8+offset_bytes].toString(16).toUpperCase().padStart(2, '0')+" ";
+        model_number_str += message[9+offset_bytes].toString(16).toUpperCase().padStart(2, '0');
+    selectDevice_identity["model_number_str"]= model_number_str;
+
+    // version
+    let version_number  = message[10+offset_bytes]<<24;
+        version_number += message[11+offset_bytes]<<16;
+        version_number += message[12+offset_bytes]<<8 ;
+        version_number += message[13+offset_bytes]<<0 ;
+    selectDevice_identity["version_number"]= version_number;
+    let version_number_str  = message[10+offset_bytes].toString(16).toUpperCase().padStart(2, '0')+" ";
+        version_number_str += message[11+offset_bytes].toString(16).toUpperCase().padStart(2, '0')+" ";
+        version_number_str += message[12+offset_bytes].toString(16).toUpperCase().padStart(2, '0')+" ";
+        version_number_str += message[13+offset_bytes].toString(16).toUpperCase().padStart(2, '0');
+    selectDevice_identity["version_number_str"]= version_number_str;
+
+    // Check GT-1000 and requests patch names
+    console.log (selectDevice_identity);
+    if (message[6+offset_bytes]==0x4f) {
+      console.log ("GT-1000 detected");      
+      preset_names_watcher_waiting_preset=null;
+      selectDevice_preset_names= new Array(250).fill(null);
+      preset_names_watcher_timerId = setInterval(preset_names_watcher, 50);      
+    }
+  }
+
+  // Check GT-1000 reception
+  let channel=selectDevice_identity["channel"];
+  if (channel)
+  {
+    if (  message[1]==0x41 
+      && message[2]==selectDevice_identity["channel"]
+      && message[3]==0x00 && message[4]==0x00 && message[5]==0x00 && message[6]==0x4f
+      && message[7]==0x12
+      ) 
+    {
+      //console.log ("gt1000_sysex_Data_Set_1_DT1!!"+address.toString(16));
+      let address=message.slice(8,12);
+      let address_num=bytesarray_to_num(address);
+      if (address_num>=0x20000000 && address_num<=0x21790000)
+      {
+        let preset_number=(address[0]==0x20)?(address[1]):(address[1]+128)
+
+        let preset_name= bytesarray_to_string(message.slice(12,-2));        
+        console.log (`preset (${address_num.toString(16)}) ${preset_number}:${preset_name}`);
+
+        // check if its an old request or really is what we are waiting
+        if (preset_number==preset_names_watcher_waiting_preset) 
+        {
+          selectDevice_preset_names[preset_number]=preset_name;
+          preset_names_watcher_waiting_preset=null;
+          console.log("name accepted "+preset_number);
+        }
+        else
+          console.log("ignoring old name request ");
+
+        buttonname=document.getElementById("buttonname"+preset_number);
+        if (buttonname!=undefined)
+          buttonname.innerHTML=preset_name;
+      }
+    }
+  }
+}
+
+let sysex_message_acumulator=null
+function processMidiInput ( message )
+{
+  for ( i in message )  
+  {
+    let byte=message[i]
+    if (sysex_message_acumulator==null) {
+      if (byte==0xF0) {
+        sysex_message_acumulator = [byte];
+      }
+    } else {      
+      sysex_message_acumulator.push(byte);
+      if (byte==0xF7) {
+        processSysEx ( sysex_message_acumulator)
+        sysex_message_acumulator=null;
+      }
+    }
+  }
+}
+
+function refreshMidiDevicesList()
+{  
   console.log("refreshMidiDevicesList");
-  navigator.requestMIDIAccess().then
+  let requestMIDIAccessSetup = { sysex: true } 
+  navigator.requestMIDIAccess(requestMIDIAccessSetup).then
   (
     function(access) 
     {
       devicesSelect.innerHTML = '';
-      selectDevice=null;
+      selectDeviceOUT=null;
 
       let firstDevicePending=true;
       midiAccess = access;
+
+      // Open input
+      const inputs = midiAccess.inputs.values();
+      for (let input = inputs.next(); input && !input.done; input = inputs.next())
+      {
+        if (input.value.name==currentState["midiDevice"]) {
+          console.log("adquiring input...:"+currentState["midiDevice"]);
+          selectDeviceIN=input.value;
+          selectDevice_identity=null;
+          selectDevice_preset_names=[];
+          preset_names_watcher_timerId=null;
+
+          selectDeviceIN.onmidimessage = function(event) {
+            var message = event.data;
+            processMidiInput(message);
+          };
+        }
+      }
+      
+      // Open output
       const outputs = midiAccess.outputs.values();
       for (let output = outputs.next(); output && !output.done; output = outputs.next())
       {
@@ -376,9 +598,10 @@ function refreshMidiDevicesList()
         devicesSelect.add(option);
 
         if (output.value.name==currentState["midiDevice"]) {
-          console.log("adquiring...:"+currentState["midiDevice"]);
-          selectDevice=output.value;
+          console.log("adquiring output...:"+currentState["midiDevice"]);
+          selectDeviceOUT=output.value;
           selectMidiProgram(currentState["program"], currentState["bankSize"]);
+          selectMidiAskIdenty();
           devicesSelect.value=output.value.name;
         }
       }
@@ -395,25 +618,34 @@ function refreshMidiDevicesList()
 
 function selectMidiProgram(programNumber, bankSize)
 {
-  if (selectDevice && selectDevice.state === 'connected') 
+  if (selectDeviceOUT && selectDeviceOUT.state === 'connected') 
   {
     const user_program = parseInt(programNumber);
     const bank = Math.floor(user_program/bankSize);
     const prog = Math.floor(user_program%bankSize);
 
     const data0 = [0xB0, 0x00, bank];
-    selectDevice.send(data0);
+    selectDeviceOUT.send(data0);
     console.log(data0);
     
     const data1 = [0xB0, 0x20, 0x00];
-    selectDevice.send(data1);
+    selectDeviceOUT.send(data1);
     console.log(data1);
 
     const data2 = [0xC0, prog];
-    selectDevice.send(data2);
+    selectDeviceOUT.send(data2);
     console.log(data2);
+  }
+}
 
-
+function selectMidiAskIdenty()
+{
+  if (selectDeviceOUT && selectDeviceOUT.state === 'connected') 
+  {
+    console.log ("asking midi identity");
+    const data = [0xF0, 0x7E, 0x7F, 0x06, 0x01, 0xF7];
+    selectDeviceOUT.send(data);
+    //console.log(data);
   }
 }
 
