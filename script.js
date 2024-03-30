@@ -700,9 +700,11 @@ function refreshMidiDevicesList()
       {
         const no_option = document.createElement("option");
         no_option.text="(No Midi Devices)";
-        devicesSelect.add(no_option);
-      }
+        devicesSelect.add(no_option);        
+      } 
 
+      buttonsGridSection.style.backgroundColor = (selectDeviceOUT==null)?"red":"";
+      
       update_grid();
     }
   )
