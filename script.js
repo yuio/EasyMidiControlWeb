@@ -65,8 +65,10 @@ let incommingState = { ...currentState };
 
 function execute_incommingState ( forced, record_state_cookie ) 
 {
-  if (incommingState["program"]<0   ) incommingState["program"]=0   ;
-  if (incommingState["program"]>4096) incommingState["program"]=4096;
+  let max_program=incommingState["colsNum"]*incommingState["rowsNum"];
+  if (incommingState["program"]<0           ) incommingState["program"]=currentState["program"];
+  if (incommingState["program"]>=max_program) incommingState["program"]=currentState["program"];
+  console.log(incommingState["program"]);
 
   if ( forced || (incommingState["settings"] != currentState["settings"] ) ) 
   {
@@ -239,7 +241,12 @@ function update_grid_selected_program()
 
   b = document.getElementById("programbutton_"+incommingState["program"]);
   if (b!=null)
+  {
     b.classList.add("button_grid_selected");
+    b_row=b.parentNode;
+    container_rect = buttonsGridSection.getBoundingClientRect();    
+    buttonsGridSection.scrollTop = b_row.offsetTop - buttonsGridSection.offsetTop - (container_rect.height/2);
+  }
 }
 
 function update_grid()
@@ -850,11 +857,15 @@ function on_load()
   rythmSelect      .addEventListener('change', function () { incommingState["metroRyt" ] = rythmSelect    .value  ; execute_incommingState(false, true); } );
 
   // IncDec controls
-  decrementButton = document.getElementById("decrement");
-  incrementButton = document.getElementById("increment");
+  decrementButton    = document.getElementById("decrement");
+  incrementButton    = document.getElementById("increment");
+  decrementButtonRow = document.getElementById("decrementrow");
+  incrementButtonRow = document.getElementById("incrementrow");
 
-  decrementButton .addEventListener('click' , function () { incommingState["program"]--; execute_incommingState(false, true); } );
-  incrementButton .addEventListener('click' , function () { incommingState["program"]++; execute_incommingState(false, true); } );
+  decrementButton   .addEventListener('click' , function () { incommingState["program"]--; execute_incommingState(false, true); } );
+  incrementButton   .addEventListener('click' , function () { incommingState["program"]++; execute_incommingState(false, true); } );
+  decrementButtonRow.addEventListener('click' , function () { incommingState["program"]-=currentState["colsNum"]; execute_incommingState(false, true); } );
+  incrementButtonRow.addEventListener('click' , function () { incommingState["program"]+=currentState["colsNum"]; execute_incommingState(false, true); } );
 
   // Get initial devices list;
   refreshMidiDevicesList();

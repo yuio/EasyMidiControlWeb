@@ -93,7 +93,7 @@ button {
 
 #buttons_inc_dec_container button{
   display:table-cell;
-  width:45%;
+  width:22%;
   height:200px;
   margin: 12px 0px 12px 0px;
 }
